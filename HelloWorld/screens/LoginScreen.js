@@ -1,4 +1,10 @@
-import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import React from "react";
 
 const LoginScreen = () => {
@@ -25,6 +31,21 @@ const LoginScreen = () => {
           <Text style={{ fontSize: 17, fontWeight: 600, marginTop: 15 }}>
             Sign In to your Account
           </Text>
+        </View>
+        <View style={{ marginTop: 50 }}>
+          <View>
+            <Text style={{ fontSize: 18, fontWeight: 600 }}>Email</Text>
+            <TextInput
+              style={{
+                borderBottomColor: "gray",
+                borderBottomWidth: 1,
+                marginVertical: 10,
+                width: 300,
+              }}
+              placeholderTextColor={"black"}
+              placeholder="Enter your email"
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>
