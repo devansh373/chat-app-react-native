@@ -5,6 +5,9 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const Message = require("./models/message");
+const User = require("./models/user");
+const multer = require("multer");
 
 const app = express();
 app.use(cors());
@@ -29,9 +32,6 @@ app.listen(port, () => {
   console.log("Server running on port ", port);
 });
 // ZPha58OICprtimgM
-
-const Message = require("./models/message");
-const User = require("./models/user");
 
 // register
 app.post("/register", (req, res) => {
@@ -171,4 +171,70 @@ app.get("/accepted-friends/:userId", async (req, res) => {
   );
   const acceptedFriends = user.friends;
   res.status(200).json(acceptedFriends);
+});
+
+// configure multer for handling file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "files/"); //specify desired destination folder
+  },
+  filename: function (req, file, cb) {
+    // Generate a unique file name for the uploaded file
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
+
+// endpoint to post messages and store it in the backend
+
+const upload = multer({ storage: storage });
+app.post("/messages", upload.single("imageFile"), async (req, res) => {
+  try {
+    const { senderId, recepientId, messageType, messageText } = req.body;
+
+    const newMessage = new Message({
+      senderId,
+      recepientId,
+      messageType,
+      message: messageText,
+      timestamp: new Date(),
+      imageUrl: messageType === "image",
+    });
+    await newMessage.save();
+    res.status(200).json({ message: "Message sent successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// endpoint to fetch msgs btwn 2 users in the chatroom
+
+app.get("/messages/:senderId/:recepientId", async (req, res) => {
+  try {
+    const { senderId, recepientId } = req.params;
+    const messages = await Message.find({
+      $or: [
+        { senderId: senderId, recepientId: recepientId },
+        { senderId: recepientId, recepientId: senderId },
+      ],
+    }).populate("senderId", "_id name");
+    res.status(200).json(messages);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// endpoint to get user details for the chat header
+
+app.get("/user/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const recepientId = await User.findById(userId);
+    res.status(200).json(recepientId);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
 });
