@@ -115,3 +115,60 @@ app.post("/friend-request", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+// endpoint to show all the friend requests of a particular user
+
+app.get("/friend-request/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId)
+      .populate("freindRequests", "name email image")
+      .lean();
+    const freindRequests = user.freindRequests;
+    res.status(200).json(freindRequests);
+    // console.log(user, freindRequests);
+  } catch (error) {
+    console.log("Error: ", error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// endpoint to accept friend request
+app.post("/friend-request/accept", async (req, res) => {
+  try {
+    const { senderId, recepientId } = req.body;
+
+    const sender = await User.findById(senderId);
+    const recepient = await User.findById(recepientId);
+
+    sender.friends.push(recepientId);
+    recepient.friends.push(senderId);
+
+    recepient.freindRequests = recepient.freindRequests.filter((request) => {
+      request.toString() !== senderId.toString();
+    });
+    sender.freindRequests = sender.freindRequests.filter((request) => {
+      request.toString() !== recepientId.toString();
+    });
+
+    await recepient.save();
+    await sender.save();
+
+    res.status(200).json({ message: "Request accepted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// endpoint to access all the accepted friends
+
+app.get("/accepted-friends/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId).populate(
+    "friends",
+    "name email image"
+  );
+  const acceptedFriends = user.friends;
+  res.status(200).json(acceptedFriends);
+});

@@ -27,8 +27,18 @@ const HomeScreen = () => {
       ),
       headerRight: () => (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Ionicons name="chatbox-ellipses-outline" size={24} color="black" />
-          <MaterialIcons name="people-outline" size={24} color="black" />
+          <Ionicons
+            name="chatbox-ellipses-outline"
+            size={24}
+            color="black"
+            onPress={() => navigation.navigate("Chats")}
+          />
+          <MaterialIcons
+            onPress={() => navigation.navigate("Friends")}
+            name="people-outline"
+            size={24}
+            color="black"
+          />
         </View>
       ),
     });
@@ -45,7 +55,7 @@ const HomeScreen = () => {
       setUserId(userId);
 
       axios
-        .get(`http://192.168.29.216:8000/users/${userId}`)
+        .get(`http://192.168.1.3:8000/users/${userId}`)
         .then((response) => {
           // console.log(response);
           setUsers(response.data);

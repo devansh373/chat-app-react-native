@@ -17,19 +17,19 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken");
-        if (token) {
-          navigation.replace("Home");
-        }
-      } catch (error) {
-        console.log("Error: ", error);
-      }
-    };
-    checkLoginStatus();
-  }, []);
+  // useEffect(() => {
+  //   const checkLoginStatus = async () => {
+  //     try {
+  //       const token = await AsyncStorage.getItem("authToken");
+  //       if (token) {
+  //         navigation.replace("Home");
+  //       }
+  //     } catch (error) {
+  //       console.log("Error: ", error);
+  //     }
+  //   };
+  //   checkLoginStatus();
+  // }, []);
 
   const handleLogin = () => {
     const user = {
@@ -38,7 +38,7 @@ const LoginScreen = () => {
     };
 
     axios
-      .post("http://192.168.29.1:8000/login", user)
+      .post("http://192.168.1.3:8000/login", user)
       .then((response) => {
         console.log(response);
         const token = response.data.token;
