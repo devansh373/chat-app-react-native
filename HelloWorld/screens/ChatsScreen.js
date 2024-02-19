@@ -11,7 +11,7 @@ const ChatsScreen = () => {
   useEffect(() => {
     const acceptedFriendsList = async () => {
       try {
-        await fetch(`http://192.168.1.3:8000/accepted-friends/${userId}`)
+        await fetch(`http://192.168.1.4:8000/accepted-friends/${userId}`)
           .then((response) => response.json())
           .then((response) => {
             setAcceptedFriends(response);

@@ -25,7 +25,7 @@ const RegisterScreen = () => {
       image,
     };
     axios
-      .post("http://192.168.1.3:8000/register", user)
+      .post("http://192.168.1.4:8000/register", user)
       .then((response) => {
         console.log(response);
         Alert.alert("Register successfull");

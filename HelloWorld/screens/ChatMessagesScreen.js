@@ -13,6 +13,7 @@ import { Entypo, Feather, Ionicons } from "@expo/vector-icons";
 import EmojiSelector from "react-native-emoji-selector";
 import { UserType } from "../UserContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 
 const ChatMessagesScreen = () => {
   const navigation = useNavigation();
@@ -29,7 +30,7 @@ const ChatMessagesScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.3:8000/messages/${userId}/${recepientId}`
+        `http://192.168.1.4:8000/messages/${userId}/${recepientId}`
       );
       const data = await response.json();
       setMessages(data);
@@ -45,7 +46,7 @@ const ChatMessagesScreen = () => {
     const fetchRecepientData = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.3:8000/user/${recepientId}`
+          `http://192.168.1.4:8000/user/${recepientId}`
         );
         const data = await response.json();
         setRecepientData(data);
@@ -66,14 +67,14 @@ const ChatMessagesScreen = () => {
         formData.append("messageType", "image");
         formData.append("imageFile", {
           uri: imageUri,
-          name: "image.jpg",
+          name: "image.jpeg",
           type: "image/jpeg",
         });
       } else {
         formData.append("messageType", "text");
         formData.append("messageText", message);
       }
-      const response = await fetch("http://192.168.1.3:8000/messages", {
+      const response = await fetch("http://192.168.1.4:8000/messages", {
         method: "POST",
         body: formData,
       });
@@ -123,6 +124,20 @@ const ChatMessagesScreen = () => {
     const options = { hour: "numeric", minute: "numeric" };
     return new Date(time).toLocaleString("en-US", options);
   };
+
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    console.log(result, result.assets[0].uri);
+    if (!result.canceled) {
+      handleSend("image", result.assets[0].uri);
+    }
+  };
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#F0F0F0" }}>
       <ScrollView>
@@ -164,6 +179,63 @@ const ChatMessagesScreen = () => {
                 >
                   {formatTime(item.timestamp)}
                 </Text>
+              </Pressable>
+            );
+          }
+          if (item.messageType === "image") {
+            const baseUrl =
+              "C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/";
+            const imageUrl = item.imageUrl;
+            const fileName = imageUrl.split("\\").pop();
+            // const source = { uri: baseUrl + fileName };
+            const uri = `file:///C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/${fileName}`;
+            console.log("source", uri);
+
+            return (
+              <Pressable
+                key={index}
+                style={[
+                  item?.senderId?._id === userId
+                    ? {
+                        alignSelf: "flex-end",
+                        backgroundColor: "orange",
+                        padding: 8,
+                        maxWidth: "60%",
+                        borderRadius: 7,
+                        margin: 10,
+                      }
+                    : {
+                        alignSelf: "flex-start",
+                        backgroundColor: "white",
+                        padding: 8,
+                        maxWidth: "60%",
+                        borderRadius: 7,
+                        margin: 10,
+                      },
+                ]}
+              >
+                <View>
+                  <Image
+                    source={{
+                      uri,
+                    }}
+                    style={{ width: 200, height: 200, borderRadius: 7 }}
+                    // onError={(error) => console.log("Image load error:", error)}
+                  />
+                  <Text
+                    style={{
+                      textAlign: "right",
+                      fontSize: 9,
+                      position: "absolute",
+                      right: 10,
+                      bottom: 7,
+                      marginTop: 5,
+                      color: "gray",
+                    }}
+                  >
+                    {formatTime(item?.timestamp)}
+                  </Text>
+                </View>
               </Pressable>
             );
           }
@@ -209,7 +281,7 @@ const ChatMessagesScreen = () => {
             marginHorizontal: 8,
           }}
         >
-          <Entypo name="camera" size={24} color="black" />
+          <Entypo onPress={pickImage} name="camera" size={24} color="black" />
           <Feather name="mic" size={24} color="black" />
         </View>
         <Pressable
