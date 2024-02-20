@@ -8,8 +8,20 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useState, useContext, useLayoutEffect, useEffect } from "react";
-import { Entypo, Feather, Ionicons } from "@expo/vector-icons";
+import React, {
+  useState,
+  useContext,
+  useLayoutEffect,
+  useEffect,
+  useRef,
+} from "react";
+import {
+  Entypo,
+  Feather,
+  Ionicons,
+  MaterialIcons,
+  FontAwesome,
+} from "@expo/vector-icons";
 import EmojiSelector from "react-native-emoji-selector";
 import { UserType } from "../UserContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -30,7 +42,22 @@ const ChatMessagesScreen = () => {
   const [recepientData, setRecepientData] = useState();
   const handleEmojiPress = () => setShowEmojiSelecotr(!showEmojiSelector);
   // const [currentImageUri, setCurrentImageUri] = useState("");
+  const [selectedMessages, setSelectedMessages] = useState([]);
+  const scrollViewRef = useRef(null);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, []);
+
+  const scrollToBottom = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: false });
+    }
+  };
+
+  const handleContentSizeChange = () => {
+    scrollToBottom();
+  };
   useEffect(() => {
     (async () => {
       const permissionStatus =
@@ -88,6 +115,7 @@ const ChatMessagesScreen = () => {
       const formData = new FormData();
       formData.append("senderId", userId);
       formData.append("recepientId", recepientId);
+      console.log(userId, recepientId);
       // check if msg type is image or text
       if (messageType === "image") {
         console.log("inside handlesend", imageUri);
@@ -101,6 +129,7 @@ const ChatMessagesScreen = () => {
       } else {
         formData.append("messageType", "text");
         formData.append("messageText", message);
+        console.log(message);
       }
       const response = await fetch("http://192.168.1.4:8000/messages", {
         method: "POST",
@@ -117,7 +146,7 @@ const ChatMessagesScreen = () => {
       console.log("error in sending the messagee ", error);
     }
   };
-  // console.log("messagesssss ", messages);
+  console.log("messagesssss ", selectedMessages);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
@@ -129,24 +158,68 @@ const ChatMessagesScreen = () => {
             size={24}
             color="black"
           />
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image
-              source={{ uri: recepientData?.image }}
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                resizeMode: "cover",
-              }}
-            />
-            <Text style={{ marginLeft: 5, fontSize: 15, fontWeight: "bold" }}>
-              {recepientData?.name}
-            </Text>
-          </View>
+          {selectedMessages.length > 0 ? (
+            <View>
+              <Text style={{ fontSize: 16, fontWeight: "500" }}>
+                {selectedMessages.length}
+              </Text>
+            </View>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Image
+                source={{ uri: recepientData?.image }}
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 15,
+                  resizeMode: "cover",
+                }}
+              />
+              <Text style={{ marginLeft: 5, fontSize: 15, fontWeight: "bold" }}>
+                {recepientData?.name}
+              </Text>
+            </View>
+          )}
         </View>
       ),
+      headerRight: () =>
+        selectedMessages.length > 0 ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Ionicons name="arrow-redo-sharp" size={24} color="black" />
+            <Ionicons name="arrow-undo-sharp" size={24} color="black" />
+            <FontAwesome name="star" size={24} color="black" />
+            <MaterialIcons
+              name="delete"
+              size={24}
+              color="black"
+              onPress={() => deleteMessages(selectedMessages)}
+            />
+          </View>
+        ) : null,
     });
-  }, [recepientData]);
+  }, [recepientData, selectedMessages]);
+
+  const deleteMessages = async (messageIds) => {
+    try {
+      const response = await fetch("http://192.168.1.4:8000/deleteMessages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messages: messageIds }),
+      });
+      if (response.ok) {
+        setSelectedMessages((prevMessages) =>
+          prevMessages.filter((id) => !messageIds.includes(id))
+        );
+        fetchMessages();
+      } else {
+        console.log("error deleting msgs ", response.status);
+      }
+    } catch (error) {
+      console.log("error deleting msgs ", error);
+    }
+  };
 
   const formatTime = (time) => {
     const options = { hour: "numeric", minute: "numeric" };
@@ -168,14 +241,29 @@ const ChatMessagesScreen = () => {
       // setCurrentImageUri(result.assets[0].uri);
     }
   };
-
+  const handleSelectMessage = (message) => {
+    const isSelected = selectedMessages.includes(message._id);
+    if (isSelected) {
+      setSelectedMessages((prevMessages) =>
+        prevMessages.filter((id) => id !== message._id)
+      );
+    } else {
+      setSelectedMessages((prevMessages) => [...prevMessages, message._id]);
+    }
+  };
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#F0F0F0" }}>
-      <ScrollView>
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={{ flexGrow: 1 }}
+        onContentSizeChange={handleContentSizeChange}
+      >
         {messages.map((item, index) => {
           if (item.messageType === "text") {
+            const isSelected = selectedMessages.includes(item._id);
             return (
               <Pressable
+                onLongPress={() => handleSelectMessage(item)}
                 key={index}
                 style={[
                   item?.senderId?._id === userId
@@ -195,9 +283,15 @@ const ChatMessagesScreen = () => {
                         borderRadius: 7,
                         margin: 10,
                       },
+                  isSelected && { width: "100%", backgroundColor: "#F0FFFF" },
                 ]}
               >
-                <Text style={{ fontSize: 15, textAlign: "left" }}>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    textAlign: isSelected ? "right" : "left",
+                  }}
+                >
                   {item.message}
                 </Text>
                 <Text

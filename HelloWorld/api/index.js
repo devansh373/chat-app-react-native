@@ -201,7 +201,7 @@ app.post("/messages", upload.single("imageFile"), async (req, res) => {
       timestamp: new Date(),
       imageUrl: messageType === "image" ? imageUri : null,
     });
-    console.log(req.file.path, imageUri);
+    console.log(imageUri);
     await newMessage.save();
     res.status(200).json({ message: "Message sent successfully" });
   } catch (error) {
@@ -238,5 +238,59 @@ app.get("/user/:userId", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error" });
+  }
+});
+
+// endpoint to delete the msgs
+app.post("/deleteMessages", async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ message: "Invalid req body" });
+    }
+    await Message.deleteMany({
+      _id: { $in: messages },
+    });
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+app.get("/friend-requests/sent/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId)
+      .populate("sentFriendRequests", "name email image")
+      .lean();
+
+    const sentFriendRequests = user.sentFriendRequests;
+
+    res.json(sentFriendRequests);
+  } catch (error) {
+    console.log("error", error);
+
+    res.status(500).json({ error: "Internal Server" });
+  }
+});
+
+app.get("/friends/:userId", (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = User.findById(userId)
+      .populate("friends")
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const friendsId = user.friends.map((friend) => friend._id);
+        res.status(200).json(friendsId);
+      });
+  } catch (error) {
+    console.log("error", error);
+
+    res.status(500).json({ error: "Internal Server" });
   }
 });

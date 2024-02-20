@@ -1,9 +1,40 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { UserType } from "../UserContext";
 
 const UserChat = ({ item }) => {
   const navigation = useNavigation();
+  const [messages, setMessages] = useState([]);
+  const { userId, setUserId } = useContext(UserType);
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(
+        `http://192.168.1.4:8000/messages/${userId}/${item._id}`
+      );
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const getLastMessage = () => {
+    const textMessages = messages.filter(
+      (message) => message.messageType === "text"
+    );
+    return textMessages[textMessages.length - 1];
+  };
+
+  const lastMessage = getLastMessage();
+  console.log(messages, lastMessage);
+  const formatTime = (time) => {
+    const options = { hour: "numeric", minute: "numeric" };
+    return new Date(time).toLocaleString("en-US", options);
+  };
   return (
     <Pressable
       onPress={() =>
@@ -36,13 +67,13 @@ const UserChat = ({ item }) => {
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 15, fontWeight: "500" }}>{item?.name}</Text>
         <Text style={{ marginTop: 3, color: "gray", fontWeight: "500" }}>
-          Last message comes here
+          {lastMessage ? lastMessage.message : "Start the convo!"}
         </Text>
       </View>
 
       <View>
         <Text style={{ fontSize: 11, fontWeight: "400", color: "grey" }}>
-          3:00 pm
+          {formatTime(lastMessage?.timestamp)}
         </Text>
       </View>
     </Pressable>
