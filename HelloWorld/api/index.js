@@ -178,11 +178,11 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "files/"); //specify desired destination folder
   },
-  filename: function (req, file, cb) {
-    // Generate a unique file name for the uploaded file
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
-  },
+  // filename: function (req, file, cb) {
+  //   // Generate a unique file name for the uploaded file
+  //   const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+  //   cb(null, uniqueSuffix + "-" + file.originalname);
+  // },
 });
 
 // endpoint to post messages and store it in the backend
@@ -190,7 +190,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 app.post("/messages", upload.single("imageFile"), async (req, res) => {
   try {
-    const { senderId, recepientId, messageType, messageText } = req.body;
+    const { senderId, recepientId, messageType, messageText, imageUri } =
+      req.body;
 
     const newMessage = new Message({
       senderId,
@@ -198,8 +199,9 @@ app.post("/messages", upload.single("imageFile"), async (req, res) => {
       messageType,
       message: messageText,
       timestamp: new Date(),
-      imageUrl: messageType === "image" ? req.file.path : null,
+      imageUrl: messageType === "image" ? imageUri : null,
     });
+    console.log(req.file.path, imageUri);
     await newMessage.save();
     res.status(200).json({ message: "Message sent successfully" });
   } catch (error) {

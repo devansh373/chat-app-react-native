@@ -13,7 +13,10 @@ import { Entypo, Feather, Ionicons } from "@expo/vector-icons";
 import EmojiSelector from "react-native-emoji-selector";
 import { UserType } from "../UserContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
+// import * as ImagePicker from "expo-image-picker";
 import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
+// import ImageComp from "../components/ImageComp";
 
 const ChatMessagesScreen = () => {
   const navigation = useNavigation();
@@ -26,6 +29,29 @@ const ChatMessagesScreen = () => {
   const { recepientId } = route.params;
   const [recepientData, setRecepientData] = useState();
   const handleEmojiPress = () => setShowEmojiSelecotr(!showEmojiSelector);
+  // const [currentImageUri, setCurrentImageUri] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const permissionStatus =
+        await ImagePicker.getMediaLibraryPermissionsAsync();
+      const statusP = await MediaLibrary.requestPermissionsAsync();
+      // console.log("permissionStatus", permissionStatus);
+      // console.log("statusP", statusP);
+    })();
+  }, []);
+  // useEffect(() => {
+  //   const imageMessages = messages.filter(
+  //     (item) => item.messageType === "image"
+  //   );
+  //   if (imageMessages.length > 0) {
+  //     const imageUrl = imageMessages[0].imageUrl; // Assuming you want to get the URL of the first image
+  //     const fileName = imageUrl.split("\\").pop();
+  //     const uri = `file:///C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/${fileName}`;
+  //     console.log("source", uri);
+  //     setCurrentImageUri(uri);
+  //   }
+  // }, [messages]);
 
   const fetchMessages = async () => {
     try {
@@ -64,7 +90,9 @@ const ChatMessagesScreen = () => {
       formData.append("recepientId", recepientId);
       // check if msg type is image or text
       if (messageType === "image") {
+        console.log("inside handlesend", imageUri);
         formData.append("messageType", "image");
+        formData.append("imageUri", imageUri);
         formData.append("imageFile", {
           uri: imageUri,
           name: "image.jpeg",
@@ -89,7 +117,7 @@ const ChatMessagesScreen = () => {
       console.log("error in sending the messagee ", error);
     }
   };
-  console.log("messagesssss ", messages);
+  // console.log("messagesssss ", messages);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
@@ -127,17 +155,20 @@ const ChatMessagesScreen = () => {
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
+
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-    console.log(result, result.assets[0].uri);
-    if (!result.canceled) {
+    // console.log("rsult", result, result.assets[0].uri);
+    if (!result.cancelled) {
       handleSend("image", result.assets[0].uri);
+      // setCurrentImageUri(result.assets[0].uri);
     }
   };
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#F0F0F0" }}>
       <ScrollView>
@@ -183,13 +214,17 @@ const ChatMessagesScreen = () => {
             );
           }
           if (item.messageType === "image") {
-            const baseUrl =
-              "C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/";
+            // const baseUrl =
+            //   "C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/";
             const imageUrl = item.imageUrl;
             const fileName = imageUrl.split("\\").pop();
-            // const source = { uri: baseUrl + fileName };
-            const uri = `file:///C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/${fileName}`;
-            console.log("source", uri);
+            // console.log(item);
+            // console.log("Image URrL:", item.imageUri, fileName);
+            // console.log("filename", fileName);
+            const uri = fileName;
+            // const uri = `C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/${fileName}`;
+            // console.log("source", uri);
+            // setImageUri(uri);
 
             return (
               <Pressable
@@ -215,13 +250,17 @@ const ChatMessagesScreen = () => {
                 ]}
               >
                 <View>
+                  {/* <ImageComp fileName={fileName} /> */}
+
                   <Image
                     source={{
                       uri,
+                      // uri: currentImageUri,
                     }}
                     style={{ width: 200, height: 200, borderRadius: 7 }}
-                    // onError={(error) => console.log("Image load error:", error)}
+                    // onError={(error) => console.log("Image load error:", error)} */}
                   />
+
                   <Text
                     style={{
                       textAlign: "right",
@@ -230,7 +269,7 @@ const ChatMessagesScreen = () => {
                       right: 10,
                       bottom: 7,
                       marginTop: 5,
-                      color: "gray",
+                      color: "white",
                     }}
                   >
                     {formatTime(item?.timestamp)}
