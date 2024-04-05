@@ -9,13 +9,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 // import axios from "axios";
 import "core-js/stable/atob";
+import { io } from "socket.io-client";
+
+var ENDPOINT = "http://192.168.4.244:8000";
+var socket, selectedChatCompare;
 
 const ChatsScreen = () => {
   const [acceptedFriends, setAcceptedFriends] = useState([]);
   const navigation = useNavigation();
   const { userId, setUserId } = useContext(UserType);
   // useEffect(() => {
-
+  // socket = io(ENDPOINT);
+  //   socket.emit("setup", userId);
+  //   //  socket.on("connected", () => setSocketConnected(true));
   // }, []);
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -60,7 +66,7 @@ const ChatsScreen = () => {
       // const acceptedFriendsList = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.4:8000/accepted-friends/${userId}`
+          `http://192.168.4.244:8000/accepted-friends/${userId}`
         );
         console.log(userId);
         const data = await response.json();

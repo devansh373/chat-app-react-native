@@ -28,8 +28,11 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 // import * as ImagePicker from "expo-image-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
+import { io } from "socket.io-client";
 // import ImageComp from "../components/ImageComp";
 
+var ENDPOINT = "http://192.168.4.244:8000";
+var socket, selectedChatCompare;
 const ChatMessagesScreen = () => {
   const navigation = useNavigation();
   const [showEmojiSelector, setShowEmojiSelecotr] = useState(false);
@@ -47,8 +50,26 @@ const ChatMessagesScreen = () => {
 
   useEffect(() => {
     scrollToBottom();
+    // socket.emit("join chat", item._id, userId);
   }, []);
-
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit("setup", userId);
+    //  socket.on("connected", () => setSocketConnected(true));
+  }, []);
+  useEffect(() => {
+    socket.on("message recieved", (newMessageRecieved) => {
+      console.log("message recieved worked", newMessageRecieved);
+      // if (
+      //   !selectedChatCompare ||
+      //   selectedChatCompare._id !== newMessageRecieved.chat._id
+      // ) {
+      //   // notification
+      // } else {
+      // setMessages([...messages, newMessageRecieved]);
+      // }
+    });
+  });
   const scrollToBottom = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: false });
@@ -83,9 +104,10 @@ const ChatMessagesScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.4:8000/messages/${userId}/${recepientId}`
+        `http://192.168.4.244:8000/messages/${userId}/${recepientId}`
       );
       const data = await response.json();
+      socket.emit("join chat", recepientId, userId);
       setMessages(data);
     } catch (error) {
       console.log(error);
@@ -99,7 +121,7 @@ const ChatMessagesScreen = () => {
     const fetchRecepientData = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.4:8000/user/${recepientId}`
+          `http://192.168.4.244:8000/user/${recepientId}`
         );
         const data = await response.json();
         setRecepientData(data);
@@ -131,12 +153,14 @@ const ChatMessagesScreen = () => {
         formData.append("messageText", message);
         console.log(message);
       }
-      const response = await fetch("http://192.168.1.4:8000/messages", {
+      const response = await fetch("http://192.168.4.244:8000/messages", {
         method: "POST",
         body: formData,
       });
-
+      const data = await response.json();
+      console.log(data);
       if (response.ok) {
+        socket.emit("new message", data, recepientId);
         console.log("ok");
         setMessage("");
         setSelectedImage("");
@@ -146,7 +170,7 @@ const ChatMessagesScreen = () => {
       console.log("error in sending the messagee ", error);
     }
   };
-  console.log("messagesssss ", selectedMessages);
+  // console.log("messagesssss ", selectedMessages);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
@@ -201,7 +225,7 @@ const ChatMessagesScreen = () => {
 
   const deleteMessages = async (messageIds) => {
     try {
-      const response = await fetch("http://192.168.1.4:8000/deleteMessages", {
+      const response = await fetch("http://192.168.4.244:8000/deleteMessages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

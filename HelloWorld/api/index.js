@@ -28,8 +28,45 @@ mongoose
   .then(() => console.log("Connection succesfull"))
   .catch((err) => console.log("Error connecting to mongoDB", err));
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log("Server running on port ", port);
+});
+
+const io = require("socket.io")(server, {
+  pingTimeout: 60000,
+  cors: { origin: "exp://192.168.4.244:8081" },
+});
+
+io.on("connection", (socket) => {
+  console.log("Connected to socket io");
+
+  socket.on("setup", (userId) => {
+    socket.userId = userId;
+    socket.join(userId);
+    console.log(userId);
+    socket.emit("connected");
+  });
+
+  socket.on("join chat", (room, loggedInUserId) => {
+    socket.join(room);
+    console.log(loggedInUserId, "joined room ", room);
+  });
+
+  socket.on("new message", (newMessageRecieved, recepientId) => {
+    // console.log("new message recieved", newMessageRecieved);
+    // var chat = newMessageRecieved.chat;
+    // if (!chat.users) return console.log("Chat.users not defined");
+    // chat.users.forEach((user) => {
+    // if (user._id === newMessageRecieved.sender._id) return;
+    console.log("idhar ", newMessageRecieved, recepientId);
+    socket.in(recepientId).emit("message recieved", newMessageRecieved);
+    // });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected", socket.userId);
+    socket.leave(socket.userId);
+  });
 });
 // ZPha58OICprtimgM
 
@@ -201,9 +238,10 @@ app.post("/messages", upload.single("imageFile"), async (req, res) => {
       timestamp: new Date(),
       imageUrl: messageType === "image" ? imageUri : null,
     });
-    console.log(imageUri);
+    // console.log(imageUri);
+    console.log(newMessage);
+    res.status(200).json(newMessage);
     await newMessage.save();
-    res.status(200).json({ message: "Message sent successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error" });

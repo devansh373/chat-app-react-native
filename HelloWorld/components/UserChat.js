@@ -2,6 +2,10 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { UserType } from "../UserContext";
+import { io } from "socket.io-client";
+
+var ENDPOINT = "http://192.168.4.244:8000";
+var socket, selectedChatCompare;
 
 const UserChat = ({ item }) => {
   const navigation = useNavigation();
@@ -18,9 +22,15 @@ const UserChat = ({ item }) => {
       console.log(error);
     }
   };
+
   useEffect(() => {
     fetchMessages();
   }, []);
+  // useEffect(() => {
+  //   socket = io(ENDPOINT);
+  //   socket.emit("setup", userId);
+  //   //  socket.on("connected", () => setSocketConnected(true));
+  // }, []);
 
   const getLastMessage = () => {
     const textMessages = messages.filter(
@@ -37,11 +47,12 @@ const UserChat = ({ item }) => {
   };
   return (
     <Pressable
-      onPress={() =>
+      onPress={() => {
         navigation.navigate("Messages", {
           recepientId: item._id,
-        })
-      }
+        });
+        // socket.emit("join chat", item._id, userId);
+      }}
       style={{
         flexDirection: "row",
         alignItems: "center",
