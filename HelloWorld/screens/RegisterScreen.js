@@ -16,6 +16,7 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
+  const navigation = useNavigation();
 
   const handleRegister = () => {
     const user = {
@@ -25,7 +26,7 @@ const RegisterScreen = () => {
       image,
     };
     axios
-      .post("http://192.168.1.4:8000/register", user)
+      .post("http://192.168.1.2:8000/register", user)
       .then((response) => {
         console.log(response);
         Alert.alert("Register successfull");
@@ -33,13 +34,14 @@ const RegisterScreen = () => {
         setEmail("");
         setPassword("");
         setImage("");
+        navigation.navigate("Home");
       })
       .catch((err) => {
         console.log(err);
         Alert.alert("Error");
       });
   };
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   return (
     <View
       style={{

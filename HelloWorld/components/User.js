@@ -12,7 +12,7 @@ const User = ({ item }) => {
     const fetchFriendRequests = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.4:8000/friend-requests/sent/${userId}`
+          `http://192.168.1.2:8000/friend-requests/sent/${userId}`
         );
         const data = await response.json();
         if (response.ok) {
@@ -31,7 +31,7 @@ const User = ({ item }) => {
     const fetchUserFriends = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.4:8000/friends/${userId}`
+          `http://192.168.1.2:8000/friends/${userId}`
         );
         const data = await response.json();
         if (response.ok) {
@@ -48,16 +48,13 @@ const User = ({ item }) => {
 
   const sendFriendRequest = async (currentUserId, selectedUserId) => {
     try {
-      const response = await fetch(
-        "http://192.168.29.216:8000/friend-request",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ currentUserId, selectedUserId }),
-        }
-      );
+      const response = await fetch("http://192.168.1.2:8000/friend-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ currentUserId, selectedUserId }),
+      });
       if (response.ok) {
         setRequestSent(true);
       }
@@ -66,8 +63,8 @@ const User = ({ item }) => {
     }
   };
 
-  console.log("requests sent", friendsRequests);
-  console.log("friends", userFriends);
+  // console.log("requests sent", friendsRequests);
+  // console.log("friends", userFriends);
   return (
     <Pressable
       style={{ flexDirection: "row", alignItems: "center", marginVertical: 10 }}

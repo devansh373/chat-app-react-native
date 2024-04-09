@@ -34,7 +34,7 @@ const server = app.listen(port, () => {
 
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
-  cors: { origin: "exp://192.168.4.244:8081" },
+  cors: { origin: "exp://192.168.1.9:8081" },
 });
 
 io.on("connection", (socket) => {
@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
   socket.on("setup", (userId) => {
     socket.userId = userId;
     socket.join(userId);
-    console.log(userId);
+    // console.log(userId);
     socket.emit("connected");
   });
 
@@ -58,7 +58,7 @@ io.on("connection", (socket) => {
     // if (!chat.users) return console.log("Chat.users not defined");
     // chat.users.forEach((user) => {
     // if (user._id === newMessageRecieved.sender._id) return;
-    console.log("idhar ", newMessageRecieved, recepientId);
+    // console.log("idhar ", newMessageRecieved, recepientId);
     socket.in(recepientId).emit("message recieved", newMessageRecieved);
     // });
   });
@@ -238,8 +238,8 @@ app.post("/messages", upload.single("imageFile"), async (req, res) => {
       timestamp: new Date(),
       imageUrl: messageType === "image" ? imageUri : null,
     });
-    // console.log(imageUri);
-    console.log(newMessage);
+    // console.log("imageUri", imageUri);
+    // console.log("newMessage", newMessage);
     res.status(200).json(newMessage);
     await newMessage.save();
   } catch (error) {

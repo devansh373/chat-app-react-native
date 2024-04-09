@@ -14,7 +14,7 @@ const UserChat = ({ item }) => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.4:8000/messages/${userId}/${item._id}`
+        `http://192.168.1.2:8000/messages/${userId}/${item._id}`
       );
       const data = await response.json();
       setMessages(data);
@@ -40,7 +40,7 @@ const UserChat = ({ item }) => {
   };
 
   const lastMessage = getLastMessage();
-  console.log(messages, lastMessage);
+  // console.log(messages, lastMessage);
   const formatTime = (time) => {
     const options = { hour: "numeric", minute: "numeric" };
     return new Date(time).toLocaleString("en-US", options);

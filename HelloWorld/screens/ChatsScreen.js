@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import "core-js/stable/atob";
 import { io } from "socket.io-client";
 
-var ENDPOINT = "http://192.168.4.244:8000";
+var ENDPOINT = "http://192.168.1.2:8000";
 var socket, selectedChatCompare;
 
 const ChatsScreen = () => {
@@ -37,6 +37,7 @@ const ChatsScreen = () => {
             size={24}
             color="black"
           />
+          <Text onPress={() => navigation.navigate("Home")}>Home</Text>
         </View>
       ),
     });
@@ -66,11 +67,11 @@ const ChatsScreen = () => {
       // const acceptedFriendsList = async () => {
       try {
         const response = await fetch(
-          `http://192.168.4.244:8000/accepted-friends/${userId}`
+          `http://192.168.1.2:8000/accepted-friends/${userId}`
         );
-        console.log(userId);
+        // console.log(userId);
         const data = await response.json();
-        console.log("response", response);
+        // console.log("response", response);
         setAcceptedFriends(data);
       } catch (error) {
         console.log("error", error);
@@ -79,7 +80,7 @@ const ChatsScreen = () => {
     // acceptedFriendsList();
     fetchUsers();
   }, []);
-  console.log("accpted friends", acceptedFriends);
+  // console.log("accpted friends", acceptedFriends);
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <Pressable>

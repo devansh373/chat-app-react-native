@@ -44,11 +44,11 @@ const FriendsScreen = () => {
   const fetchFriends = async () => {
     try {
       const response = await fetch(
-        `http://192.168.4.244:8000/accepted-friends/${userId}`
+        `http://192.168.1.2:8000/accepted-friends/${userId}`
       );
-      console.log(userId);
+      // console.log(userId);
       const data = await response.json();
-      console.log("response", response);
+      // console.log("response", response);
       setAcceptedFriends(data);
     } catch (error) {
       console.log("error", error);
@@ -57,9 +57,9 @@ const FriendsScreen = () => {
   const fetchFriendRequests = async () => {
     try {
       const response = await axios.get(
-        `http://192.168.4.244:8000/friend-request/${userId}`
+        `http://192.168.1.2:8000/friend-request/${userId}`
       );
-      console.log(response);
+      // console.log(response);
       if (response.status === 200) {
         const freindRequestsData = response.data.map((friendRequest) => ({
           _id: friendRequest._id,
@@ -68,13 +68,13 @@ const FriendsScreen = () => {
           image: friendRequest.image,
         }));
         setFriendRequests(freindRequestsData);
-        console.log(friendRequests, freindRequestsData, "hey");
+        // console.log(friendRequests, freindRequestsData, "hey");
       }
     } catch (error) {
       console.log(error);
     }
   };
-  console.log(userId);
+  // console.log(userId);
 
   return (
     <View style={{ padding: 10, marginHorizontal: 12 }}>

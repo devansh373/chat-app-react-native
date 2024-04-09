@@ -31,7 +31,7 @@ import * as MediaLibrary from "expo-media-library";
 import { io } from "socket.io-client";
 // import ImageComp from "../components/ImageComp";
 
-var ENDPOINT = "http://192.168.4.244:8000";
+var ENDPOINT = "http://192.168.1.2:8000";
 var socket, selectedChatCompare;
 const ChatMessagesScreen = () => {
   const navigation = useNavigation();
@@ -46,6 +46,7 @@ const ChatMessagesScreen = () => {
   const handleEmojiPress = () => setShowEmojiSelecotr(!showEmojiSelector);
   // const [currentImageUri, setCurrentImageUri] = useState("");
   const [selectedMessages, setSelectedMessages] = useState([]);
+  // const [uri, setUri] = useState(second)
   const scrollViewRef = useRef(null);
 
   useEffect(() => {
@@ -59,17 +60,17 @@ const ChatMessagesScreen = () => {
   }, []);
   useEffect(() => {
     socket.on("message recieved", (newMessageRecieved) => {
-      console.log("message recieved worked", newMessageRecieved);
+      // console.log("message recieved worked", newMessageRecieved);
       // if (
       //   !selectedChatCompare ||
       //   selectedChatCompare._id !== newMessageRecieved.chat._id
       // ) {
       //   // notification
       // } else {
-      // setMessages([...messages, newMessageRecieved]);
+      setMessages([...messages, newMessageRecieved]);
       // }
     });
-  });
+  }, [setMessages]);
   const scrollToBottom = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: false });
@@ -104,11 +105,12 @@ const ChatMessagesScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://192.168.4.244:8000/messages/${userId}/${recepientId}`
+        `http://192.168.1.2:8000/messages/${userId}/${recepientId}`
       );
       const data = await response.json();
       socket.emit("join chat", recepientId, userId);
       setMessages(data);
+      // console.log(data);
     } catch (error) {
       console.log(error);
     }
@@ -121,7 +123,7 @@ const ChatMessagesScreen = () => {
     const fetchRecepientData = async () => {
       try {
         const response = await fetch(
-          `http://192.168.4.244:8000/user/${recepientId}`
+          `http://192.168.1.2:8000/user/${recepientId}`
         );
         const data = await response.json();
         setRecepientData(data);
@@ -137,7 +139,7 @@ const ChatMessagesScreen = () => {
       const formData = new FormData();
       formData.append("senderId", userId);
       formData.append("recepientId", recepientId);
-      console.log(userId, recepientId);
+      // console.log(userId, recepientId);
       // check if msg type is image or text
       if (messageType === "image") {
         console.log("inside handlesend", imageUri);
@@ -151,17 +153,17 @@ const ChatMessagesScreen = () => {
       } else {
         formData.append("messageType", "text");
         formData.append("messageText", message);
-        console.log(message);
+        // console.log(message);
       }
-      const response = await fetch("http://192.168.4.244:8000/messages", {
+      const response = await fetch("http://192.168.1.2:8000/messages", {
         method: "POST",
         body: formData,
       });
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       if (response.ok) {
         socket.emit("new message", data, recepientId);
-        console.log("ok");
+        // console.log("ok");
         setMessage("");
         setSelectedImage("");
         fetchMessages();
@@ -225,7 +227,7 @@ const ChatMessagesScreen = () => {
 
   const deleteMessages = async (messageIds) => {
     try {
-      const response = await fetch("http://192.168.4.244:8000/deleteMessages", {
+      const response = await fetch("http://192.168.1.2:8000/deleteMessages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -261,7 +263,29 @@ const ChatMessagesScreen = () => {
     });
     // console.log("rsult", result, result.assets[0].uri);
     if (!result.cancelled) {
-      handleSend("image", result.assets[0].uri);
+      // console.log("result", result);
+      // handleSend("image", result.assets[0].uri);
+      const newFile = {
+        uri: result.assets[0].uri,
+        type: "files/jpeg" || "files/png",
+        name: result.assets[0].uri.split("\\").pop(),
+      };
+
+      const data = new FormData();
+      data.append("file", newFile);
+      data.append("upload_preset", "chat-mobile-app");
+      data.append("cloud_name", "dev-tech");
+      fetch("https://api.cloudinary.com/v1_1/dev-tech/image/upload", {
+        method: "POST",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          // console.log(data, data.secure_url);
+          handleSend("image", data.secure_url);
+          // setPic(data.url.toString());
+          // setLoading(false);
+        });
       // setCurrentImageUri(result.assets[0].uri);
     }
   };
@@ -334,12 +358,13 @@ const ChatMessagesScreen = () => {
           if (item.messageType === "image") {
             // const baseUrl =
             //   "C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/";
-            const imageUrl = item.imageUrl;
-            const fileName = imageUrl.split("\\").pop();
+            // const imageUrl = item.imageUrl;
+            // const fileName = imageUrl.split("\\").pop();
             // console.log(item);
             // console.log("Image URrL:", item.imageUri, fileName);
-            // console.log("filename", fileName);
-            const uri = fileName;
+            // console.log("filename", item.imageUrl);
+            // const uri=
+            // setUri(fileName);
             // const uri = `C:/Users/admin/Desktop/chat-app/HelloWorld/api/files/${fileName}`;
             // console.log("source", uri);
             // setImageUri(uri);
@@ -372,7 +397,7 @@ const ChatMessagesScreen = () => {
 
                   <Image
                     source={{
-                      uri,
+                      uri: item.imageUrl,
                       // uri: currentImageUri,
                     }}
                     style={{ width: 200, height: 200, borderRadius: 7 }}
