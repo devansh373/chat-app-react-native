@@ -31,7 +31,7 @@ import * as MediaLibrary from "expo-media-library";
 import { io } from "socket.io-client";
 // import ImageComp from "../components/ImageComp";
 
-var ENDPOINT = "http://192.168.1.2:8000";
+var ENDPOINT = "http://192.168.1.5:8000";
 var socket, selectedChatCompare;
 const ChatMessagesScreen = () => {
   const navigation = useNavigation();
@@ -105,7 +105,7 @@ const ChatMessagesScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.2:8000/messages/${userId}/${recepientId}`
+        `http://192.168.1.5:8000/messages/${userId}/${recepientId}`
       );
       const data = await response.json();
       socket.emit("join chat", recepientId, userId);
@@ -123,7 +123,7 @@ const ChatMessagesScreen = () => {
     const fetchRecepientData = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.2:8000/user/${recepientId}`
+          `http://192.168.1.5:8000/user/${recepientId}`
         );
         const data = await response.json();
         setRecepientData(data);
@@ -155,7 +155,7 @@ const ChatMessagesScreen = () => {
         formData.append("messageText", message);
         // console.log(message);
       }
-      const response = await fetch("http://192.168.1.2:8000/messages", {
+      const response = await fetch("http://192.168.1.5:8000/messages", {
         method: "POST",
         body: formData,
       });
@@ -227,7 +227,7 @@ const ChatMessagesScreen = () => {
 
   const deleteMessages = async (messageIds) => {
     try {
-      const response = await fetch("http://192.168.1.2:8000/deleteMessages", {
+      const response = await fetch("http://192.168.1.5:8000/deleteMessages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

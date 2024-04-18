@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import "core-js/stable/atob";
 import { io } from "socket.io-client";
 
-var ENDPOINT = "http://192.168.1.2:8000";
+var ENDPOINT = "http://192.168.1.5:8000";
 var socket, selectedChatCompare;
 
 const ChatsScreen = () => {
@@ -67,7 +67,7 @@ const ChatsScreen = () => {
       // const acceptedFriendsList = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.2:8000/accepted-friends/${userId}`
+          `http://192.168.1.5:8000/accepted-friends/${userId}`
         );
         // console.log(userId);
         const data = await response.json();
